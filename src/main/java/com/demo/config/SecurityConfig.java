@@ -1,5 +1,8 @@
 package com.demo.config;
 
+import com.demo.config.Auth.AuthUser;
+import com.demo.config.Auth.UserStore;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -17,6 +20,10 @@ import static org.springframework.security.config.http.SessionCreationPolicy.STA
 @EnableMethodSecurity
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
+    @Autowired
+    UserStore userStore;
+
+
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.httpBasic().and()
@@ -25,16 +32,15 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/**/loggers/**").hasRole("MANAGER");
 
         http.sessionManagement().sessionCreationPolicy(STATELESS);
-
         http.csrf().disable();
     }
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-        auth.inMemoryAuthentication()
-                .withUser("u1").password(encoder().encode("p1")).roles("USER")
-                .and()
-                .withUser("u2").password(encoder().encode("p2")).roles("ADMIN","MANAGER");
+        for (AuthUser user : userStore.getAll()) {
+            auth.inMemoryAuthentication()
+                    .withUser(user.getName()).password(encoder().encode(user.getPass())).roles(user.getRoles());
+        }
     }
 
     @Bean
