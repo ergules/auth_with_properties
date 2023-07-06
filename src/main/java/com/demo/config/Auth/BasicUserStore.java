@@ -13,7 +13,7 @@ import java.util.List;
 @ConfigurationProperties(prefix = "auth")
 public class BasicUserStore implements UserStore {
 
-    List<AuthUser> users;
+    private List<AuthUser> users;
 
     public List<AuthUser> getAll() {
         return getUsers();

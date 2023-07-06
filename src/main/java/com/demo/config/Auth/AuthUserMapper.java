@@ -13,12 +13,8 @@ public class AuthUserMapper implements Converter<String, AuthUser> {
     @Override
     public AuthUser convert(String source) {
         try {
-            String[] props = source.split("::");
-            AuthUser user = new AuthUser();
-            user.setName(props[0]);
-            user.setPass(props[1]);
-            user.setRoles(props[2].split(","));
-            return user;
+            final var props = source.split("::");
+            return new AuthUser(props[0], props[1], props[2].split(","));
         } catch (Exception e) {
             log.warn("Property: {} can not be mapped as user", source);
         }
