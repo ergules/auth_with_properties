@@ -1,7 +1,7 @@
 package com.demo.config;
 
-import com.demo.config.Auth.AuthUser;
 import com.demo.config.Auth.UserStore;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,11 +13,14 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.util.Objects;
+
 import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
 
 @Configuration
 @EnableWebSecurity(debug = true)
 @EnableMethodSecurity
+@Slf4j
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
@@ -36,11 +39,15 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     @Override
-    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-        for (AuthUser user : userStore.getAll()) {
-            auth.inMemoryAuthentication()
-                    .withUser(user.getName()).password(encoder().encode(user.getPass())).roles(user.getRoles());
-        }
+    protected void configure(AuthenticationManagerBuilder auth) {
+        userStore.getAll().stream().filter(Objects::nonNull).forEach(user -> {
+            try {
+                auth.inMemoryAuthentication()
+                        .withUser(user.getName()).password(encoder().encode(user.getPass())).roles(user.getRoles());
+            } catch (Exception e) {
+                log.warn("Security starts without any users");
+            }
+        });
     }
 
     @Bean
